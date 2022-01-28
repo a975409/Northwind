@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Data.SqlClient;
+using System.Transactions;
 
 namespace Management_System
 {
@@ -37,6 +39,37 @@ namespace Management_System
         private void button1_Click(object sender, EventArgs e)
         {
             this.customersBindingSource.CancelEdit();
+
+
+            
+        }
+
+        private void testFuc()
+        {
+            try
+            {
+                using (TransactionScope scope = new TransactionScope())
+                {
+                    using (SqlConnection conn = new SqlConnection())
+                    {
+                        conn.Open();
+
+                        using (SqlCommand cmd = new SqlCommand("sql指令",conn))
+                        {
+                            cmd.ExecuteNonQuery();
+                            //...後續省略
+                        }
+                    }
+
+                    //以上指令執行後如果沒有出現例外狀況，就會執行下列指令標記此交易已完成
+                    scope.Complete();
+                }
+            }
+            catch(TransactionException ex)
+            {
+                //Transaction例外狀況...
+            }
+
         }
     }
 }

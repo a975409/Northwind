@@ -83,19 +83,20 @@ namespace Management_System
             this.BtnEditEmployee = new System.Windows.Forms.Button();
             this.BtnDeleteEmployee = new System.Windows.Forms.Button();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.button8 = new System.Windows.Forms.Button();
+            this.BtnPic = new System.Windows.Forms.Button();
             this.titleOfCourtesyTextBox = new System.Windows.Forms.TextBox();
             this.BtnMoveLastItem = new System.Windows.Forms.Button();
             this.LblPage = new System.Windows.Forms.Label();
             this.BtnMoveFirstItem = new System.Windows.Forms.Button();
             this.BtnMovePreviousItem = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.BtnMoveNextItem = new System.Windows.Forms.Button();
             this.employeesTableAdapter = new Management_System.NorthwindDataSetTableAdapters.EmployeesTableAdapter();
             this.tableAdapterManager = new Management_System.NorthwindDataSetTableAdapters.TableAdapterManager();
             this.BtnClose = new System.Windows.Forms.Button();
             this.BtnSave = new System.Windows.Forms.Button();
             this.BtnCancel = new System.Windows.Forms.Button();
-            this.BtnMoveNextItem = new System.Windows.Forms.Button();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             employeeIDLabel = new System.Windows.Forms.Label();
             titleLabel = new System.Windows.Forms.Label();
             birthDateLabel = new System.Windows.Forms.Label();
@@ -598,15 +599,16 @@ namespace Management_System
             this.pictureBox1.TabIndex = 38;
             this.pictureBox1.TabStop = false;
             // 
-            // button8
+            // BtnPic
             // 
-            this.button8.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.button8.Location = new System.Drawing.Point(771, 277);
-            this.button8.Name = "button8";
-            this.button8.Size = new System.Drawing.Size(208, 31);
-            this.button8.TabIndex = 36;
-            this.button8.Text = "更換大頭照";
-            this.button8.UseVisualStyleBackColor = true;
+            this.BtnPic.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.BtnPic.Location = new System.Drawing.Point(771, 277);
+            this.BtnPic.Name = "BtnPic";
+            this.BtnPic.Size = new System.Drawing.Size(208, 31);
+            this.BtnPic.TabIndex = 36;
+            this.BtnPic.Text = "上傳大頭照";
+            this.BtnPic.UseVisualStyleBackColor = true;
+            this.BtnPic.Click += new System.EventHandler(this.BtnPic_Click);
             // 
             // titleOfCourtesyTextBox
             // 
@@ -680,6 +682,19 @@ namespace Management_System
             this.panel1.Size = new System.Drawing.Size(267, 65);
             this.panel1.TabIndex = 48;
             // 
+            // BtnMoveNextItem
+            // 
+            this.BtnMoveNextItem.Dock = System.Windows.Forms.DockStyle.Right;
+            this.BtnMoveNextItem.FlatAppearance.BorderSize = 0;
+            this.BtnMoveNextItem.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.BtnMoveNextItem.Image = ((System.Drawing.Image)(resources.GetObject("BtnMoveNextItem.Image")));
+            this.BtnMoveNextItem.Location = new System.Drawing.Point(179, 0);
+            this.BtnMoveNextItem.Name = "BtnMoveNextItem";
+            this.BtnMoveNextItem.Size = new System.Drawing.Size(44, 65);
+            this.BtnMoveNextItem.TabIndex = 50;
+            this.BtnMoveNextItem.UseVisualStyleBackColor = true;
+            this.BtnMoveNextItem.Click += new System.EventHandler(this.BtnMoveNextItem_Click);
+            // 
             // employeesTableAdapter
             // 
             this.employeesTableAdapter.ClearBeforeFill = true;
@@ -736,18 +751,10 @@ namespace Management_System
             this.BtnCancel.UseVisualStyleBackColor = true;
             this.BtnCancel.Click += new System.EventHandler(this.BtnCancel_Click);
             // 
-            // BtnMoveNextItem
+            // openFileDialog1
             // 
-            this.BtnMoveNextItem.Dock = System.Windows.Forms.DockStyle.Right;
-            this.BtnMoveNextItem.FlatAppearance.BorderSize = 0;
-            this.BtnMoveNextItem.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.BtnMoveNextItem.Image = ((System.Drawing.Image)(resources.GetObject("BtnMoveNextItem.Image")));
-            this.BtnMoveNextItem.Location = new System.Drawing.Point(179, 0);
-            this.BtnMoveNextItem.Name = "BtnMoveNextItem";
-            this.BtnMoveNextItem.Size = new System.Drawing.Size(44, 65);
-            this.BtnMoveNextItem.TabIndex = 50;
-            this.BtnMoveNextItem.UseVisualStyleBackColor = true;
-            this.BtnMoveNextItem.Click += new System.EventHandler(this.BtnMoveNextItem_Click);
+            this.openFileDialog1.FileName = "openFileDialog1";
+            this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
             // 
             // EmployeeForm
             // 
@@ -763,7 +770,7 @@ namespace Management_System
             this.Controls.Add(this.BtnEditEmployee);
             this.Controls.Add(this.BtnCancel);
             this.Controls.Add(this.BtnSave);
-            this.Controls.Add(this.button8);
+            this.Controls.Add(this.BtnPic);
             this.Controls.Add(this.BtnInsertEmployee);
             this.Controls.Add(this.lastNameTextBox);
             this.Controls.Add(firstNameLabel);
@@ -836,7 +843,7 @@ namespace Management_System
         private System.Windows.Forms.Button BtnEditEmployee;
         private System.Windows.Forms.Button BtnDeleteEmployee;
         private System.Windows.Forms.PictureBox pictureBox1;
-        private System.Windows.Forms.Button button8;
+        private System.Windows.Forms.Button BtnPic;
         private System.Windows.Forms.TextBox titleOfCourtesyTextBox;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
@@ -861,5 +868,6 @@ namespace Management_System
         private System.Windows.Forms.Button BtnSave;
         private System.Windows.Forms.Button BtnCancel;
         private System.Windows.Forms.Button BtnMoveNextItem;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
     }
 }
