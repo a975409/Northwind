@@ -38,21 +38,5 @@ namespace Management_System
 
             return !string.IsNullOrEmpty(extension);
         }
-
-        /// <summary>
-        /// 透過SQL查詢語法指定欄位查詢的結果顯示在ComboBox的選項上
-        /// </summary>
-        /// <param name="comboBox"></param>
-        /// <param name="sql">SQL語法</param>
-        /// <param name="ValueMember">指定欄位名稱為value值</param>
-        /// <param name="DisplayMember">指定欄位名稱為顯示欄位</param>
-        public static void ComboBoxItem(string sql, ComboBox comboBox, string ValueMember, string DisplayMember)
-        {
-            DataTable dt = DatabaseManagement.SqlQueryDataTable(sql);
-
-            comboBox.DataSource = dt;
-            comboBox.ValueMember = ValueMember;
-            comboBox.DisplayMember = DisplayMember;
-        }
     }
 }

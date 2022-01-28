@@ -116,5 +116,30 @@ namespace Northwind
 			if (cbo.Items.Count > 0)
 				cbo.SelectedIndex = 0;
 		}
+
+		/// <summary>
+		/// sql 查詢結果綁定下拉項目
+		/// </summary>
+		/// <param name="cbo">物件</param>
+		/// <param name="sql">sql查詢指令</param>
+		/// <param name="valueColumn">值欄位</param>
+		/// <param name="textColumn">名稱欄位</param>
+		/// <param name="addEmpty">是否加空白選項</param>
+		public static void BindTableToDDL(ComboBox cbo, string sql, string valueColumn, string textColumn, bool addEmpty)
+		{
+			cbo.Items.Clear();
+			DataTable dt = DatabaseManagement.SqlQueryDataTable(sql);
+
+			if (addEmpty)
+			{
+				cbo.Items.Add(new ComboBoxItem("", ""));
+			}
+			foreach (DataRow dr in dt.Rows)
+			{
+				cbo.Items.Add(new ComboBoxItem(dr[valueColumn].ToString(), dr[textColumn].ToString()));
+			}
+			if (cbo.Items.Count > 0)
+				cbo.SelectedIndex = 0;
+		}
 	}
 }

@@ -147,7 +147,7 @@ namespace Management_System
 
             //從資料庫取得上司名字填到reportsToComboBox控制項
             string sql = "select EmployeeID,(LastName+' '+FirstName) as BossName from Employees";
-            ToolClass.ComboBoxItem(sql, reportsToComboBox, "EmployeeID", "BossName");
+            ComboUtil.BindTableToDDL(reportsToComboBox, sql, "EmployeeID", "BossName", false);
 
             GetCurrentPageData(currentPage, pageSize);
         }
