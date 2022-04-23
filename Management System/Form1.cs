@@ -90,5 +90,15 @@ namespace Management_System
         {
             openChildForm(new EmployeeForm());
         }
+
+        private void BtnCategories_Click(object sender, EventArgs e)
+        {
+            openChildForm(new CategoriesForm());
+        }
+
+        private void BtnProducts_Click(object sender, EventArgs e)
+        {
+            openChildForm(new ProductsForm());
+        }
     }
 }

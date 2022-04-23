@@ -12,7 +12,7 @@ using System.IO;
 
 namespace Management_System
 {
-    public partial class EmployeeForm : Form
+    public partial class CategoriesForm : Form
     {
         private int currentPage = 0;
         private readonly int pageSize = 4;
@@ -23,7 +23,7 @@ namespace Management_System
    
         #region 針對此Form的控制項所寫的方法
         /// <summary>
-        /// 指定頁數和單一頁數取得某個範圍區間的員工資料
+        /// 指定頁數和單一頁數取得某個範圍區間的產品種類資料
         /// </summary>
         /// <param name="page">顯示第幾頁的資料</param>
         /// <param name="size">單頁最多資料筆數</param>
@@ -33,7 +33,7 @@ namespace Management_System
             try
             {
                 //取得總資料筆數
-                count = (int)this.employeesTableAdapter.GetScalarQueryCount();
+                count = (int)this.categoriesTableAdapter.GetScalarQueryCount();
             }
             catch
             {
@@ -50,7 +50,7 @@ namespace Management_System
                 maxPage += 1;
 
             //取得某個範圍區間的資料(從資料庫取得的資料寫入至 northwindDataSet.Employees )
-            this.employeesTableAdapter.FillByPageSize(northwindDataSet.Employees, currentPage * pageSize, size);
+            this.categoriesTableAdapter.FillByPageSize(northwindDataSet.Categories, currentPage * pageSize, size);
             LblPage.Text = (page + 1).ToString();
         }
 
@@ -76,15 +76,15 @@ namespace Management_System
             //DataBindings["控制項的屬性名稱"]
             foreach (Control ctrl in this.Controls)
             {
-                if (ctrl is TextBox && ctrl.DataBindings["Text"].DataSource == employeesBindingSource)
+                if (ctrl is TextBox && ctrl.DataBindings["Text"].DataSource == categoriesBindingSource)
                 {
                     (ctrl as TextBox).ReadOnly = ReadOnly;
                 }
-                else if (ctrl is ComboBox && ctrl.DataBindings["SelectedValue"].DataSource == employeesBindingSource)
+                else if (ctrl is ComboBox && ctrl.DataBindings["SelectedValue"].DataSource == categoriesBindingSource)
                 {
                     (ctrl as ComboBox).Enabled = !ReadOnly;
                 }
-                else if (ctrl is DateTimePicker && ctrl.DataBindings["Value"].DataSource == employeesBindingSource)
+                else if (ctrl is DateTimePicker && ctrl.DataBindings["Value"].DataSource == categoriesBindingSource)
                 {
                     (ctrl as DateTimePicker).Enabled = !ReadOnly;
                 }
@@ -94,7 +94,7 @@ namespace Management_System
             if(ReadOnly)
                 currentState = currentState.none;
 
-            employeesDataGridView.Enabled = ReadOnly;
+            categoriesDataGridView.Enabled = ReadOnly;
             BtnCancel.Enabled = !ReadOnly;
             BtnSave.Enabled = !ReadOnly;
             BtnPic.Enabled = !ReadOnly;
@@ -114,7 +114,7 @@ namespace Management_System
             
             try
             {
-                this.employeesBindingSource.EndEdit();
+                this.categoriesBindingSource.EndEdit();
                 this.tableAdapterManager.UpdateAll(this.northwindDataSet);
             }
             catch (Exception ex)
@@ -125,8 +125,8 @@ namespace Management_System
                     GetCurrentPageData(currentPage, pageSize);
                 }
 
-                this.employeesBindingSource.CancelEdit();
-                this.employeesBindingSource.ResetBindings(false);
+                this.categoriesBindingSource.CancelEdit();
+                this.categoriesBindingSource.ResetBindings(false);
 
                 MessageBox.Show($"儲存失敗，失敗原因：{ex.Message}", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -138,19 +138,15 @@ namespace Management_System
         #endregion
 
         #region Form控制項的事件
-        public EmployeeForm()
+        public CategoriesForm()
         {
             InitializeComponent();
         }
 
-        private void EmployeeForm_Load(object sender, EventArgs e)
+        private void CategoriesForm_Load(object sender, EventArgs e)
         {
             initControlSetting();
             EditControl(true);
-
-            //從資料庫取得上司名字填到reportsToComboBox控制項
-            string sql = "select EmployeeID,(LastName+' '+FirstName) as BossName from Employees";
-            ComboUtil.BindTableToDDL(reportsToComboBox, sql, "EmployeeID", "BossName", false);
 
             GetCurrentPageData(currentPage, pageSize);
         }
@@ -162,7 +158,7 @@ namespace Management_System
         /// <param name="e"></param>
         private void BtnMoveNextItem_Click(object sender, EventArgs e)
         {
-            if (employeesBindingSource.Count >= pageSize && currentPage < maxPage)
+            if (categoriesBindingSource.Count >= pageSize && currentPage < maxPage)
             {
                 currentPage++;
                 GetCurrentPageData(currentPage, pageSize);
@@ -205,42 +201,6 @@ namespace Management_System
             GetCurrentPageData(currentPage, pageSize);
         }
 
-        private void employeesBindingSource_CurrentChanged(object sender, EventArgs e)
-        {
-            if (employeesBindingSource.Current == null)
-            {
-                pictureBox1.Image = null;
-                return;
-            }
-
-            //顯示存放在資料庫的圖片
-            if (((DataRowView)employeesBindingSource.Current)["Photo"] != null)
-            {
-                byte[] sourceData;
-                try
-                {
-                    sourceData = (byte[])((DataRowView)employeesBindingSource.Current)["Photo"];
-                }
-                catch
-                {
-                    pictureBox1.Image = null;
-                    return;
-                }
-
-                using (MemoryStream mStream = new MemoryStream())
-                {
-                    byte[] pData = new byte[sourceData.Length - 78];
-                    Array.Copy(sourceData, 78, pData, 0, sourceData.Length - 78);
-                    mStream.Write(pData, 0, Convert.ToInt32(pData.Length));
-                    Bitmap bm = new Bitmap(mStream, false);
-                    pictureBox1.Image = bm;
-                }
-            }
-            else
-            {
-                pictureBox1.Image = null;
-            }
-        }
 
         private void BtnClose_Click(object sender, EventArgs e)
         {
@@ -263,7 +223,7 @@ namespace Management_System
             BtnMoveLastItem_Click(sender, e);
 
             //新增ROW
-            employeesBindingSource.AddNew();
+            categoriesBindingSource.AddNew();
             EditControl(false);
         }
 
@@ -275,7 +235,7 @@ namespace Management_System
 
         private void BtnDeleteEmployee_Click(object sender, EventArgs e)
         {
-            DialogResult msg = MessageBox.Show("是否要刪除這位員工?刪除後就無法再復原了", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult msg = MessageBox.Show("是否要刪除此產品種類?刪除後就無法再復原了", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (msg != DialogResult.Yes)
                 return;
@@ -283,7 +243,7 @@ namespace Management_System
             currentState = currentState.delete;
 
             //刪除目前指定的ROW
-            employeesBindingSource.RemoveCurrent();
+            categoriesBindingSource.RemoveCurrent();
             SaveChange();
         }
 
@@ -293,8 +253,8 @@ namespace Management_System
 
             //僅能針對目前編輯中的ROW取消編輯，會將變更的欄位資料還原成變更前的資料
             //目前發現如果變更的欄位為陣列的話，則下這個指令會無法變回變更前的資料
-            employeesBindingSource.CancelEdit();
-            employeesBindingSource.ResetBindings(false);
+            categoriesBindingSource.CancelEdit();
+            categoriesBindingSource.ResetBindings(false);
         }
 
         private void BtnSave_Click(object sender, EventArgs e)
@@ -331,7 +291,7 @@ namespace Management_System
 
                 try
                 {
-                    ((DataRowView)employeesBindingSource.Current)["Photo"] = data;
+                    ((DataRowView)categoriesBindingSource.Current)["Picture"] = data;
                     Bitmap bm = new Bitmap(fs, false);
                     pictureBox1.Image = bm;
                 }
@@ -344,5 +304,42 @@ namespace Management_System
         }
 
         #endregion
+
+        private void categoriesBindingSource_CurrentChanged(object sender, EventArgs e)
+        {
+            if (categoriesBindingSource.Current == null)
+            {
+                pictureBox1.Image = null;
+                return;
+            }
+
+            //顯示存放在資料庫的圖片
+            if (((DataRowView)categoriesBindingSource.Current)["Picture"] != null)
+            {
+                byte[] sourceData;
+                try
+                {
+                    sourceData = (byte[])((DataRowView)categoriesBindingSource.Current)["Picture"];
+                }
+                catch
+                {
+                    pictureBox1.Image = null;
+                    return;
+                }
+
+                using (MemoryStream mStream = new MemoryStream())
+                {
+                    byte[] pData = new byte[sourceData.Length - 78];
+                    Array.Copy(sourceData, 78, pData, 0, sourceData.Length - 78);
+                    mStream.Write(pData, 0, Convert.ToInt32(pData.Length));
+                    Bitmap bm = new Bitmap(mStream, false);
+                    pictureBox1.Image = bm;
+                }
+            }
+            else
+            {
+                pictureBox1.Image = null;
+            }
+        }
     }
 }

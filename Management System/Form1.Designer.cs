@@ -271,6 +271,7 @@ namespace Management_System
             this.BtnProducts.TabIndex = 1;
             this.BtnProducts.Text = "產品清單";
             this.BtnProducts.UseVisualStyleBackColor = true;
+            this.BtnProducts.Click += new System.EventHandler(this.BtnProducts_Click);
             // 
             // BtnCategories
             // 
@@ -288,6 +289,7 @@ namespace Management_System
             this.BtnCategories.TabIndex = 0;
             this.BtnCategories.Text = "產品種類";
             this.BtnCategories.UseVisualStyleBackColor = true;
+            this.BtnCategories.Click += new System.EventHandler(this.BtnCategories_Click);
             // 
             // BtnProductService
             // 
