@@ -286,6 +286,7 @@ namespace Management_System
             this.employeeIDTextBox.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.employeeIDTextBox.Location = new System.Drawing.Point(606, 69);
             this.employeeIDTextBox.Name = "employeeIDTextBox";
+            this.employeeIDTextBox.ReadOnly = true;
             this.employeeIDTextBox.Size = new System.Drawing.Size(158, 29);
             this.employeeIDTextBox.TabIndex = 3;
             // 

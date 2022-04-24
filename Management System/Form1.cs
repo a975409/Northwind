@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Management_System.Presenters;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -88,7 +89,9 @@ namespace Management_System
 
         private void BtnEmployees_Click(object sender, EventArgs e)
         {
-            openChildForm(new EmployeeForm());
+            EmployeeForm form = new EmployeeForm();
+            new EmployeePresenter(form);
+            openChildForm(form);
         }
 
         private void BtnCategories_Click(object sender, EventArgs e)

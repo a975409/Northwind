@@ -9,49 +9,224 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using Management_System.View;
+using Management_System.NorthwindDataSetTableAdapters;
 
 namespace Management_System
 {
-    public partial class EmployeeForm : Form
+    public partial class EmployeeForm : Form, IEmployeeForm
     {
-        private int currentPage = 0;
-        private readonly int pageSize = 4;
-        private int maxPage = 0;
-
-        //紀錄現在執行的狀態
         private currentState currentState = currentState.none;
-   
-        #region 針對此Form的控制項所寫的方法
-        /// <summary>
-        /// 指定頁數和單一頁數取得某個範圍區間的員工資料
-        /// </summary>
-        /// <param name="page">顯示第幾頁的資料</param>
-        /// <param name="size">單頁最多資料筆數</param>
-        private void GetCurrentPageData(int page, int size)
+
+        public event EventHandler SaveEmployee;
+        public event EventHandler CancelEmployee;
+        public event EventHandler AddEmployee;
+        public event EventHandler EditEmployee;
+        public event EventHandler DeleteEmployee;
+        public event EventHandler MoveNextItem;
+        public event EventHandler MovePreviousItem;
+        public event EventHandler MoveLastItem;
+        public event EventHandler MoveFirstItem;
+        public event EventHandler openFile;
+        public event EventHandler EmployeeCurrentChanged;
+
+        public BindingSource EmployeeBindingSource { get { return employeesBindingSource; } }
+        public TableAdapterManager AdapterManager { get { return tableAdapterManager; } }
+        public EmployeesTableAdapter employeesAdapter { get { return employeesTableAdapter; } }
+        public NorthwindDataSet northwind { get { return northwindDataSet; } }
+        public string Page
         {
-            int count;
-            try
+            get
             {
-                //取得總資料筆數
-                count = (int)this.employeesTableAdapter.GetScalarQueryCount();
+                return LblPage.Text;
             }
-            catch
+            set
             {
-                page = 0;
-                maxPage = 0;
-                LblPage.Text = (page + 1).ToString();
+                LblPage.Text = value;
+            } 
+        }
+
+        public Image Image 
+        {
+            get
+            {
+                return pictureBox1.Image;
+            }
+            set
+            {
+                pictureBox1.Image = value;
+            }
+        }
+
+        private bool fileIsImage;
+        public bool FileIsImage
+        {
+            get
+            {
+                return fileIsImage;
+            }
+            set
+            {
+                fileIsImage = value;
+            }
+        }
+
+        private bool saveSuccess;
+        public bool SaveSuccess 
+        {
+            get
+            {
+                return saveSuccess;
+            }
+            set
+            {
+                saveSuccess = value;
+            } 
+        }
+
+        private string message;
+        public string Message
+        {
+            get
+            {
+                return message;
+            }
+            set
+            {
+                message = value;
+            }
+        }
+
+        public EmployeeForm()
+        {
+            InitializeComponent();
+        }
+
+        private void EmployeeForm_Load(object sender, EventArgs e)
+        {
+            initControlSetting();
+            EditControl(true);
+        }
+
+        /// <summary>
+        /// 下一頁
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BtnMoveNextItem_Click(object sender, EventArgs e)
+        {
+            MoveNextItem?.Invoke(sender, e);
+        }
+
+        /// <summary>
+        /// 上一頁
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BtnMovePreviousItem_Click(object sender, EventArgs e)
+        {
+            MovePreviousItem?.Invoke(sender, e);
+        }
+
+        /// <summary>
+        /// 最後一頁
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BtnMoveLastItem_Click(object sender, EventArgs e)
+        {
+            MoveLastItem?.Invoke(sender, e);
+        }
+
+        /// <summary>
+        /// 第一頁
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BtnMoveFirstItem_Click(object sender, EventArgs e)
+        {
+            MoveFirstItem?.Invoke(sender, e);
+        }
+
+        private void employeesBindingSource_CurrentChanged(object sender, EventArgs e)
+        {
+            EmployeeCurrentChanged?.Invoke(sender, e);
+        }
+
+        private void BtnClose_Click(object sender, EventArgs e)
+        {
+            if (currentState != currentState.none)
+            {
+                DialogResult msg = MessageBox.Show("您變更的項目尚未儲存，確定要關閉此視窗?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                if (msg != DialogResult.Yes)
+                    return;
+            }
+
+            this.Close();
+        }
+
+        private void BtnInsertEmployee_Click(object sender, EventArgs e)
+        {
+            currentState = currentState.insert;
+            AddEmployee?.Invoke(sender, e);
+            EditControl(false);
+        }
+
+        private void BtnEditEmployee_Click(object sender, EventArgs e)
+        {
+            currentState = currentState.edit;
+            EditEmployee?.Invoke(sender, e);
+            EditControl(false);
+        }
+
+        private void BtnDeleteEmployee_Click(object sender, EventArgs e)
+        {
+            DialogResult msg = MessageBox.Show("是否要刪除這位員工?刪除後就無法再復原了", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (msg != DialogResult.Yes)
                 return;
-            }
 
-            //設定最大頁數
-            maxPage = (count / pageSize) - 1;
+            currentState = currentState.delete;
+            DeleteEmployee?.Invoke(sender, e);
 
-            if (count % pageSize > 0)
-                maxPage += 1;
+            if(saveSuccess)
+                MessageBox.Show(message, "", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            else
+                MessageBox.Show(message, "", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-            //取得某個範圍區間的資料(從資料庫取得的資料寫入至 northwindDataSet.Employees )
-            this.employeesTableAdapter.FillByPageSize(northwindDataSet.Employees, currentPage * pageSize, size);
-            LblPage.Text = (page + 1).ToString();
+            EditControl(true);
+        }
+
+        private void BtnCancel_Click(object sender, EventArgs e)
+        {
+            CancelEmployee?.Invoke(sender, e);
+            EditControl(true);
+        }
+
+        private void BtnSave_Click(object sender, EventArgs e)
+        {
+            DialogResult msg = MessageBox.Show("是否儲存目前的變更?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (msg != DialogResult.Yes)
+                return;
+
+            this.Validate();
+            SaveEmployee?.Invoke(sender, e);
+            EditControl(true);
+        }
+
+        private void BtnPic_Click(object sender, EventArgs e)
+        {
+            openFileDialog1.ShowDialog();
+        }
+       
+        private void openFileDialog1_FileOk(object sender, CancelEventArgs e)
+        {
+            openFile?.Invoke(sender, e);
+
+            if (!fileIsImage)
+                MessageBox.Show("請選擇正確的圖檔", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         /// <summary>
@@ -78,7 +253,8 @@ namespace Management_System
             {
                 if (ctrl is TextBox && ctrl.DataBindings["Text"].DataSource == employeesBindingSource)
                 {
-                    (ctrl as TextBox).ReadOnly = ReadOnly;
+                    if((ctrl as TextBox).Name!= "employeeIDTextBox")
+                        (ctrl as TextBox).ReadOnly = ReadOnly;
                 }
                 else if (ctrl is ComboBox && ctrl.DataBindings["SelectedValue"].DataSource == employeesBindingSource)
                 {
@@ -91,7 +267,7 @@ namespace Management_System
                 else { }
             }
 
-            if(ReadOnly)
+            if (ReadOnly)
                 currentState = currentState.none;
 
             employeesDataGridView.Enabled = ReadOnly;
@@ -104,245 +280,7 @@ namespace Management_System
             BtnMoveFirstItem.Enabled = ReadOnly;
             BtnMoveLastItem.Enabled = ReadOnly;
             BtnMoveNextItem.Enabled = ReadOnly;
-            BtnMovePreviousItem.Enabled = ReadOnly;  
+            BtnMovePreviousItem.Enabled = ReadOnly;
         }
-
-        private void SaveChange()
-        {
-            EditControl(true);
-            this.Validate();
-            
-            try
-            {
-                this.employeesBindingSource.EndEdit();
-                this.tableAdapterManager.UpdateAll(this.northwindDataSet);
-            }
-            catch (Exception ex)
-            {
-                //如果遇到並行衝突，會重新從資料庫取得資料並回寫至datatable
-                if (ex is DBConcurrencyException)
-                {
-                    GetCurrentPageData(currentPage, pageSize);
-                }
-
-                this.employeesBindingSource.CancelEdit();
-                this.employeesBindingSource.ResetBindings(false);
-
-                MessageBox.Show($"儲存失敗，失敗原因：{ex.Message}", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            MessageBox.Show("儲存成功", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        #endregion
-
-        #region Form控制項的事件
-        public EmployeeForm()
-        {
-            InitializeComponent();
-        }
-
-        private void EmployeeForm_Load(object sender, EventArgs e)
-        {
-            initControlSetting();
-            EditControl(true);
-
-            //從資料庫取得上司名字填到reportsToComboBox控制項
-            string sql = "select EmployeeID,(LastName+' '+FirstName) as BossName from Employees";
-            ComboUtil.BindTableToDDL(reportsToComboBox, sql, "EmployeeID", "BossName", false);
-
-            GetCurrentPageData(currentPage, pageSize);
-        }
-
-        /// <summary>
-        /// 下一頁
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void BtnMoveNextItem_Click(object sender, EventArgs e)
-        {
-            if (employeesBindingSource.Count >= pageSize && currentPage < maxPage)
-            {
-                currentPage++;
-                GetCurrentPageData(currentPage, pageSize);
-            }
-        }
-
-        /// <summary>
-        /// 上一頁
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void BtnMovePreviousItem_Click(object sender, EventArgs e)
-        {
-            if (currentPage > 0)
-            {
-                currentPage--;
-                GetCurrentPageData(currentPage, pageSize);
-            }
-        }
-
-        /// <summary>
-        /// 最後一頁
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void BtnMoveLastItem_Click(object sender, EventArgs e)
-        {
-            currentPage = maxPage;
-            GetCurrentPageData(currentPage, pageSize);
-        }
-
-        /// <summary>
-        /// 第一頁
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void BtnMoveFirstItem_Click(object sender, EventArgs e)
-        {
-            currentPage = 0;
-            GetCurrentPageData(currentPage, pageSize);
-        }
-
-        private void employeesBindingSource_CurrentChanged(object sender, EventArgs e)
-        {
-            if (employeesBindingSource.Current == null)
-            {
-                pictureBox1.Image = null;
-                return;
-            }
-
-            //顯示存放在資料庫的圖片
-            if (((DataRowView)employeesBindingSource.Current)["Photo"] != null)
-            {
-                byte[] sourceData;
-                try
-                {
-                    sourceData = (byte[])((DataRowView)employeesBindingSource.Current)["Photo"];
-                }
-                catch
-                {
-                    pictureBox1.Image = null;
-                    return;
-                }
-
-                using (MemoryStream mStream = new MemoryStream())
-                {
-                    byte[] pData = new byte[sourceData.Length - 78];
-                    Array.Copy(sourceData, 78, pData, 0, sourceData.Length - 78);
-                    mStream.Write(pData, 0, Convert.ToInt32(pData.Length));
-                    Bitmap bm = new Bitmap(mStream, false);
-                    pictureBox1.Image = bm;
-                }
-            }
-            else
-            {
-                pictureBox1.Image = null;
-            }
-        }
-
-        private void BtnClose_Click(object sender, EventArgs e)
-        {
-            if (currentState != currentState.none)
-            {
-                DialogResult msg = MessageBox.Show("您變更的項目尚未儲存，確定要關閉此視窗?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                if (msg != DialogResult.Yes)
-                    return;
-            }
-
-            this.Close();
-        }
-
-        private void BtnInsertEmployee_Click(object sender, EventArgs e)
-        {
-            currentState = currentState.insert;
-
-            //回到最後一頁
-            BtnMoveLastItem_Click(sender, e);
-
-            //新增ROW
-            employeesBindingSource.AddNew();
-            EditControl(false);
-        }
-
-        private void BtnEditEmployee_Click(object sender, EventArgs e)
-        {
-            currentState = currentState.edit;
-            EditControl(false);
-        }
-
-        private void BtnDeleteEmployee_Click(object sender, EventArgs e)
-        {
-            DialogResult msg = MessageBox.Show("是否要刪除這位員工?刪除後就無法再復原了", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            if (msg != DialogResult.Yes)
-                return;
-
-            currentState = currentState.delete;
-
-            //刪除目前指定的ROW
-            employeesBindingSource.RemoveCurrent();
-            SaveChange();
-        }
-
-        private void BtnCancel_Click(object sender, EventArgs e)
-        {
-            EditControl(true);
-
-            //僅能針對目前編輯中的ROW取消編輯，會將變更的欄位資料還原成變更前的資料
-            //目前發現如果變更的欄位為陣列的話，則下這個指令會無法變回變更前的資料
-            employeesBindingSource.CancelEdit();
-            employeesBindingSource.ResetBindings(false);
-        }
-
-        private void BtnSave_Click(object sender, EventArgs e)
-        {
-            DialogResult msg = MessageBox.Show("是否儲存目前的變更?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            if (msg != DialogResult.Yes)
-                return;
-
-            SaveChange();
-        }
-
-        private void BtnPic_Click(object sender, EventArgs e)
-        {
-            openFileDialog1.ShowDialog();
-        }
-       
-        private void openFileDialog1_FileOk(object sender, CancelEventArgs e)
-        {
-            string filePath = openFileDialog1.FileName;
-
-            //檢查檔案是否為圖檔
-            if (!ToolClass.checkImage(filePath))
-            {
-                MessageBox.Show("請選擇正確的圖檔", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            //以下因為使用Northwind資料庫，圖片的抓法有點特別，圖片byte[]要從index=78開始抓
-            using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-            {
-                byte[] data = new byte[fs.Length + 78];
-                fs.Read(data, 78, (int)fs.Length);
-
-                try
-                {
-                    ((DataRowView)employeesBindingSource.Current)["Photo"] = data;
-                    Bitmap bm = new Bitmap(fs, false);
-                    pictureBox1.Image = bm;
-                }
-                catch
-                {
-                    pictureBox1.Image = null;
-                    return;
-                }
-            }
-        }
-
-        #endregion
     }
 }
